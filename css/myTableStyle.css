@@ -1,0 +1,50 @@
+:root {
+  --main-theme: #009879;
+}
+
+.my-table {
+  width: 100%;
+
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+  border-collapse: collapse;
+  font-family: Tahoma, Arial, "Helvetica Neue", Helvetica, sans-serif;
+  font-size: 16px;
+  border-radius: 10px;
+}
+
+.my-table__header {
+  background-color: var(--main-theme);
+  color: #ffffff;
+}
+
+.my-table__header-row {
+  text-align: center;
+  font-weight: 700;
+}
+
+.my-table__header-cell {
+  padding: 10px;
+}
+
+.my-table__body {
+  
+}
+
+.my-table__body-row {
+  
+}
+
+.my-table__body-row:nth-child(2n) {
+  background-color: #f3f3f3;
+  color: var(--main-theme);
+  border-top: 2px solid #dddddd;
+  border-bottom: 2px solid #dddddd;
+}
+
+.my-table__body-cell {
+  padding: 5px;
+}
+
+.my-table__body-cell:first-of-type {
+  text-align: center;
+}
