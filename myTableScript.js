@@ -1,3 +1,25 @@
+const config = {
+  parent: '#usersTable',
+  columns: [
+    {title: 'Имя', value: 'name'},
+    {title: 'Фамилия', value: 'surname'},
+    {title: 'Возраст', value: 'age'},
+  ],
+  apiUrl: "https://mock-api.shpp.me/adavydenko/users"
+};
+
+const users = [
+  {id: 30050, name: 'Вася', surname: 'Петров', age: 12},
+  {id: 30051, name: 'Петя', surname: 'Васечкин', age: 15},
+];
+
+DataTable(config);
+
+/** DEL */
+fetch("https://mock-api.shpp.me/adavydenko/users")
+.then(response => response.json())
+.then(data => console.log(data));
+
 /**
  * Creates and renders thead and tbody elements with all
  * tr-s and td-s as well as the content the user provided.
@@ -8,14 +30,34 @@
  * to be displayed. The objects` keys shall have the exact same names
  * as the columns` values in the config object.
  */
-function DataTable(config, data) {
-  const numOfColumns = config.columns.length + 1;
+async function DataTable(config, data) {
+  let serverData;
+  let useLocalData = true;
+  let numOfColumns;
+  let serverTableHeaders;
+
+  if (data === undefined) {
+    useLocalData = false;
+    serverData = await getServerData(config);
+    numOfColumns = Object.keys(serverData.data[1]).length;
+    serverTableHeaders = Object.keys(serverData.data[1]);
+    serverTableHeaders.unshift("№");
+  } else {
+    numOfColumns = config.columns.length + 1;
+  }
+
   const table = createTableWrapperAndTable(config);
   const tHead = createTableHead(table);
   const tHeadTr = createTableHeadTr(tHead);
-  createTableHeadTds(tHeadTr, config, numOfColumns);
+  createTableHeadTds(tHeadTr, config, numOfColumns, useLocalData, serverTableHeaders);
   const tBody = createTableBody(table);
-  createBodyTrs(data, numOfColumns, tBody);
+  createBodyTrs(data, numOfColumns, tBody, useLocalData, serverData);
+}
+
+async function getServerData(config) {
+  let data = await fetch(config.apiUrl);
+  data = await data.json();
+  return data;
 }
 
 /**
@@ -75,12 +117,19 @@ function createTableHeadTr(tHead) {
  * of the columns that shall be displayed
  * @param {integer} numOfColumns is the number of columns the user wants to render on screen
  */
-function createTableHeadTds(tHeadTr, config, numOfColumns) {
+function createTableHeadTds(tHeadTr, config, numOfColumns, useLocalData, serverTableHeaders) {
   for (let i = 0; i < numOfColumns; i++) {
     const tHeadTd = document.createElement("td");
     tHeadTd.classList.add("my-table__header-cell");
-    tHeadTd.textContent = i === 0 ? "№" : config.columns[i - 1].title; 
-    tHeadTd.textContent === "№" ? tHeadTd.setAttribute("data-my-table", "number") : tHeadTd.setAttribute("data-my-table", config.columns[i - 1].value);
+
+    if (useLocalData) {
+      tHeadTd.textContent = i === 0 ? "№" : config.columns[i - 1].title; 
+      tHeadTd.textContent === "№" ? tHeadTd.setAttribute("data-my-table", "number") : tHeadTd.setAttribute("data-my-table", config.columns[i - 1].value);
+    } else {
+      tHeadTd.textContent = serverTableHeaders[i]; 
+      tHeadTd.setAttribute("data-my-table", serverTableHeaders[i]);
+    }
+    
     tHeadTr.appendChild(tHeadTd);
   }
 }
@@ -110,10 +159,19 @@ function createTableBody(table) {
  * @param {integer} numOfColumns is the number of columns the user wants to render on screen
  * @param {DOM-object} tBody is the tbody html-element
  */
-function createBodyTrs(data, numOfColumns, tBody) {
-  data.forEach((item, index) => {
-    createBodyTr(numOfColumns, tBody, index, item);
-  })
+function createBodyTrs(data, numOfColumns, tBody, useLocalData, serverData) {
+  if (useLocalData) {
+    data.forEach((item, index) => {
+      createBodyTr(numOfColumns, tBody, index, item, useLocalData);
+    })
+  } else {
+    let index = 0;
+    for (let item in serverData.data) {
+      createBodyTr(numOfColumns, tBody, index, serverData.data[item], useLocalData);
+      index++;
+    }
+  }
+  
 }
 
 /**
@@ -129,10 +187,10 @@ function createBodyTrs(data, numOfColumns, tBody) {
  * of the objects that shall be display each in a separate table row. 
  * Item is used to create a separate row and fill this row with item`s data.
  */
-function createBodyTr(numOfColumns, tBody, index, item) {
+function createBodyTr(numOfColumns, tBody, index, item, useLocalData) {
   const tBodyTr = document.createElement("tr");
   tBodyTr.classList.add("my-table__body-row");
-  createTableBodyTds(tBodyTr, numOfColumns, index, item);
+  createTableBodyTds(tBodyTr, numOfColumns, index, item, useLocalData);
   tBody.appendChild(tBodyTr);
 }
 
@@ -150,12 +208,12 @@ function createBodyTr(numOfColumns, tBody, index, item) {
  * of the objects that shall be display each in a separate table row. 
  * Item is used to create a separate row and fill this row with item`s data.
  */
-function createTableBodyTds(tBodyTr, numOfColumns, index, item) {
+function createTableBodyTds(tBodyTr, numOfColumns, index, item, useLocalData) {
   for (let i = 0; i < numOfColumns; i++) {
     const tBodyTd = document.createElement("td");
     tBodyTd.classList.add("my-table__body-cell");
-    tBodyTd.textContent = i === 0 ? index + 1 : getTextContent(i, item);
-    tBodyTr.appendChild(tBodyTd);
+    tBodyTd.textContent = i === 0 ? index + 1 : getTextContent(i, item, useLocalData);
+    tBodyTr.appendChild(tBodyTd);  
   }
 }
 
@@ -174,49 +232,16 @@ function createTableBodyTds(tBodyTr, numOfColumns, index, item) {
  * Item is used to create a separate row and fill this row with item`s data.
  * @returns a textContent a particular td-element shall have.
  */
-function getTextContent(index, item) {
+function getTextContent(index, item, useLocalData) {
   const correspondingHeadTr = document.querySelector(`.my-table__header-row td:nth-child(${index + 1})`);
   const key = correspondingHeadTr.getAttribute("data-my-table");
-  return (item[key]);
+
+  if (useLocalData) {
+    return (item[key]);
+  } else {
+    /* console.log(item);
+    console.log(item[key]); */
+    return (item[key]);
+  }
+  
 }
-
-const config1 = {
-  parent: '#usersTable',
-  columns: [
-    {title: 'Имя', value: 'name'},
-    {title: 'Фамилия', value: 'surname'},
-    {title: 'Возраст', value: 'age'},
-  ]
-};
-
-const users = [
-  {id: 30050, name: 'Вася', surname: 'Петров', age: 12},
-  {id: 30051, name: 'Петя', surname: 'Васечкин', age: 15},
-];
-
-DataTable(config1, users);
-
-const config2 = {
-  parent: '#usersTable2',
-  columns: [
-    {title: 'Имя', value: 'name'},
-    {title: 'Фамилия', value: 'surname'},
-    {title: 'Возраст', value: 'age'},
-    {title: 'Country', value: 'country'},
-    {title: 'Color', value: 'color'},
-    {title: 'Number', value: 'num'},
-    {title: 'Id', value: 'id'},
-  ]
-};
-
-const users2 = [
-  {id: 30050, name: 'Вася', surname: 'Петров', age: 12, country: "Albania", color: "white", num: 45},
-  {id: 30050, name: 'Вася', surname: 'Петров', age: 12, country: "Albania", color: "white", num: 45},
-  {id: 30050, name: 'Вася', surname: 'Петров', age: 12, country: "Albania", color: "white", num: 45},
-  {id: 30050, name: 'Вася', surname: 'Петров', age: 12, country: "Albania", color: "white", num: 45},
-  {id: 30050, name: 'Вася', surname: 'Петров', age: 12, country: "Albania", color: "white", num: 45},
-  {id: 30050, name: 'Вася', surname: 'Петров', age: 12, country: "Albania", color: "white", num: 45},
-  {id: 30050, name: 'Вася', surname: 'Петров', age: 12, country: "Albania", color: "white", num: 45},
-];
-
-DataTable(config2, users2);
