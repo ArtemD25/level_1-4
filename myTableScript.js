@@ -46,7 +46,7 @@ async function DataTable(config, data) {
   const tHeadTr = createTableHeadTr(tHead);
   createTableHeadTds(tHeadTr, config, numOfColumns, useLocalData, serverTableHeaders);
   const tBody = createTableBody(table);
-  createBodyTrs(data, numOfColumns, tBody, useLocalData, serverData);
+  createBodyTrs(data, numOfColumns, tBody, useLocalData, serverData, config.parent);
 }
 
 async function getServerData(config) {
@@ -154,19 +154,18 @@ function createTableBody(table) {
  * @param {integer} numOfColumns is the number of columns the user wants to render on screen
  * @param {DOM-object} tBody is the tbody html-element
  */
-function createBodyTrs(data, numOfColumns, tBody, useLocalData, serverData) {
+function createBodyTrs(data, numOfColumns, tBody, useLocalData, serverData, tableWrapper) {
   if (useLocalData) {
     data.forEach((item, index) => {
-      createBodyTr(numOfColumns, tBody, index, item);
+      createBodyTr(numOfColumns, tBody, index, item, tableWrapper);
     })
   } else {
-    let index = 0;
+    let count = 0;
     for (let item in serverData.data) {
-      createBodyTr(numOfColumns, tBody, index, serverData.data[item]);
-      index++;
+      createBodyTr(numOfColumns, tBody, count, serverData.data[item], tableWrapper);
+      count++;
     }
   }
-  
 }
 
 /**
@@ -182,10 +181,10 @@ function createBodyTrs(data, numOfColumns, tBody, useLocalData, serverData) {
  * of the objects that shall be display each in a separate table row. 
  * Item is used to create a separate row and fill this row with item`s data.
  */
-function createBodyTr(numOfColumns, tBody, index, item) {
+function createBodyTr(numOfColumns, tBody, index, item, tableWrapper) {
   const tBodyTr = document.createElement("tr");
   tBodyTr.classList.add("my-table__body-row");
-  createTableBodyTds(tBodyTr, numOfColumns, index, item);
+  createTableBodyTds(tBodyTr, numOfColumns, index, item, tableWrapper);
   tBody.appendChild(tBodyTr);
 }
 
@@ -203,11 +202,11 @@ function createBodyTr(numOfColumns, tBody, index, item) {
  * of the objects that shall be display each in a separate table row. 
  * Item is used to create a separate row and fill this row with item`s data.
  */
-function createTableBodyTds(tBodyTr, numOfColumns, index, item) {
+function createTableBodyTds(tBodyTr, numOfColumns, index, item, tableWrapper) {
   for (let i = 0; i < numOfColumns; i++) {
     const tBodyTd = document.createElement("td");
     tBodyTd.classList.add("my-table__body-cell");
-    tBodyTd.textContent = i === 0 ? index + 1 : getTextContent(i, item);
+    tBodyTd.textContent = i === 0 ? index + 1 : getTextContent(i, item, tableWrapper);
     tBodyTr.appendChild(tBodyTd);  
   }
 }
@@ -227,8 +226,8 @@ function createTableBodyTds(tBodyTr, numOfColumns, index, item) {
  * Item is used to create a separate row and fill this row with item`s data.
  * @returns a textContent a particular td-element shall have.
  */
-function getTextContent(index, item) {
-  const correspondingHeadTr = document.querySelector(`.my-table__header-row td:nth-child(${index + 1})`);
+function getTextContent(index, item, tableWrapper) {
+  const correspondingHeadTr = document.querySelector(`${tableWrapper} .my-table__header-row td:nth-child(${index + 1})`);
   const key = correspondingHeadTr.getAttribute("data-my-table");
   return (item[key]);
 }
