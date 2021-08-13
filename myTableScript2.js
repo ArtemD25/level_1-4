@@ -1,5 +1,5 @@
 const config = {
-  parent: '#usersTable1',
+  parent: '#usersTable',
   columns: [
     {title: 'Имя', value: 'name'},
     {title: 'Фамилия', value: 'surname'},
