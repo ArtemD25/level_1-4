@@ -48,3 +48,31 @@
 .my-table__body-cell:first-of-type {
   text-align: center;
 }
+
+.deleteBtnCell {
+  width: auto;
+}
+
+.deleteBtn {
+  padding: 10px;
+  border: none;
+
+  background-color: rgb(196, 9, 9);
+  border-radius: 5px;
+  color: #ffffff;
+  text-align: center;
+  text-transform: uppercase;
+  font-family: Helvetica, "Helvetica Neue", Arial, sans-serif;
+  font-size: 10px;
+  letter-spacing: 2px;
+
+  transition: ease-out 200ms;
+}
+
+.deleteBtn:hover {
+  background-color: rgb(224, 24, 24);
+}
+
+.deleteBtn:active {
+  transform: translate(-2px, 2px) scale(0.95);
+}

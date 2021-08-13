@@ -34,11 +34,12 @@ async function DataTable2(config, data) {
   if (data === undefined) {
     useLocalData = false;
     serverData = await getServerData(config);
-    numOfColumns = Object.keys(serverData.data[1]).length + 1;
-    serverTableHeaders = Object.keys(serverData.data[1]);
+    numOfColumns = Object.keys(serverData.data[Object.keys(serverData.data)[0]]).length + 2;
+    serverTableHeaders = Object.keys(serverData.data[Object.keys(serverData.data)[0]]);
     serverTableHeaders.unshift("№");
+    serverTableHeaders.push("");
   } else {
-    numOfColumns = config.columns.length + 1;
+    numOfColumns = config.columns.length + 2;
   }
 
   const table = createTableWrapperAndTable(config);
@@ -118,11 +119,26 @@ function createTableHeadTds(tHeadTr, config, numOfColumns, useLocalData, serverT
     tHeadTd.classList.add("my-table__header-cell");
 
     if (useLocalData) {
-      tHeadTd.textContent = i === 0 ? "№" : config.columns[i - 1].title; 
-      tHeadTd.textContent === "№" ? tHeadTd.setAttribute("data-my-table", "number") : tHeadTd.setAttribute("data-my-table", config.columns[i - 1].value);
+      if (i === 0) {
+        tHeadTd.textContent = "№";
+        tHeadTd.setAttribute("data-my-table", "number");
+      } else if (i === numOfColumns - 1) {
+        tHeadTd.textContent = "";
+        tHeadTd.setAttribute("data-my-table", "deleteBtn");
+        tHeadTd.classList.add("deleteBtnCell");
+      } else {
+        tHeadTd.textContent = config.columns[i - 1].title; 
+        tHeadTd.setAttribute("data-my-table", config.columns[i - 1].value);
+      }
     } else {
-      tHeadTd.textContent = serverTableHeaders[i]; 
-      tHeadTd.setAttribute("data-my-table", serverTableHeaders[i]);
+      if (i === numOfColumns - 1) {
+        tHeadTd.textContent = "";
+        tHeadTd.setAttribute("data-my-table", "deleteBtn");
+        tHeadTd.classList.add("deleteBtnCell");
+      } else {
+        tHeadTd.textContent = serverTableHeaders[i]; 
+        tHeadTd.setAttribute("data-my-table", serverTableHeaders[i]);
+      } 
     }
     
     tHeadTr.appendChild(tHeadTd);
@@ -152,17 +168,17 @@ function createTableBody(table) {
  * to be displayed. The objects` keys shall have the exact same names
  * as the columns` values in the config object.
  * @param {integer} numOfColumns is the number of columns the user wants to render on screen
- * @param {DOM-object} tBody is the tbody html-element
+ * @param {DOM-object} tBody is the tbody html-element 
  */
 function createBodyTrs(data, numOfColumns, tBody, useLocalData, serverData, tableWrapper) {
-  if (useLocalData) {
+  if (useLocalData) { 
     data.forEach((item, index) => {
       createBodyTr(numOfColumns, tBody, index, item, tableWrapper);
     })
   } else {
     let count = 0;
     for (let item in serverData.data) {
-      createBodyTr(numOfColumns, tBody, count, serverData.data[item], tableWrapper);
+      createBodyTr(numOfColumns, tBody, count, serverData.data[item], tableWrapper, item);
       count++;
     }
   }
@@ -181,10 +197,10 @@ function createBodyTrs(data, numOfColumns, tBody, useLocalData, serverData, tabl
  * of the objects that shall be display each in a separate table row. 
  * Item is used to create a separate row and fill this row with item`s data.
  */
-function createBodyTr(numOfColumns, tBody, index, item, tableWrapper) {
+function createBodyTr(numOfColumns, tBody, index, item, tableWrapper, keyOfObject) {
   const tBodyTr = document.createElement("tr");
   tBodyTr.classList.add("my-table__body-row");
-  createTableBodyTds(tBodyTr, numOfColumns, index, item, tableWrapper);
+  createTableBodyTds(tBodyTr, numOfColumns, index, item, tableWrapper, keyOfObject);
   tBody.appendChild(tBodyTr);
 }
 
@@ -202,13 +218,63 @@ function createBodyTr(numOfColumns, tBody, index, item, tableWrapper) {
  * of the objects that shall be display each in a separate table row. 
  * Item is used to create a separate row and fill this row with item`s data.
  */
-function createTableBodyTds(tBodyTr, numOfColumns, index, item, tableWrapper) {
+function createTableBodyTds(tBodyTr, numOfColumns, index, item, tableWrapper, keyOfObject) {
   for (let i = 0; i < numOfColumns; i++) {
     const tBodyTd = document.createElement("td");
     tBodyTd.classList.add("my-table__body-cell");
-    tBodyTd.textContent = i === 0 ? index + 1 : getTextContent(i, item, tableWrapper);
+
+    if (i === 0) {
+      tBodyTd.textContent = index + 1;
+    } else if (i === numOfColumns - 1) {
+      const deleteBtn = createDeleteBtn(keyOfObject, tableWrapper);
+      tBodyTd.append(deleteBtn);
+      tBodyTd.classList.add("deleteBtnCell");
+    } else {
+      tBodyTd.textContent = getTextContent(i, item, tableWrapper);
+    }
+    
     tBodyTr.appendChild(tBodyTd);  
   }
+}
+
+function createDeleteBtn(keyOfObject, tableWrapper) {
+  const deleteBtn = document.createElement("button");
+  deleteBtn.textContent = "Delete";
+  deleteBtn.classList.add("deleteBtn");
+  deleteBtn.setAttribute("data-id", keyOfObject);
+  deleteBtn.onclick = function() {
+    console.log(this);
+    const key = this.getAttribute("data-id");
+    fetch(`https://mock-api.shpp.me/adavydenko/users/${key}`, {
+      method: "DELETE",
+    })
+    .then(response => {
+      if (response.ok) {
+        document.getElementById(tableWrapper.slice(1)).children[0].remove();
+        DataTable2(config2);
+      }
+  });
+  }
+
+  /* deleteBtn.addEventListener("click", function() {
+    removeRow(tableWrapper);
+  }); */
+  return deleteBtn;
+}
+
+function removeRow(tableWrapper) {
+  console.log(this);
+  const key = this.getAttribute("data-id");
+  fetch(`https://mock-api.shpp.me/adavydenko/users/${key}`, {
+    method: "DELETE",
+  })
+  .then(response => {
+    if (response.ok) {
+      console.log("row deleted");
+      document.getElementById(tableWrapper.slice(1)).children[0].remove();
+      DataTable2(config2);
+    }
+  });
 }
 
 /**
