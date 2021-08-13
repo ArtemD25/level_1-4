@@ -34,7 +34,7 @@ async function DataTable(config, data) {
   if (data === undefined) {
     useLocalData = false;
     serverData = await getServerData(config);
-    numOfColumns = Object.keys(serverData.data[1]).length;
+    numOfColumns = Object.keys(serverData.data[1]).length + 1;
     serverTableHeaders = Object.keys(serverData.data[1]);
     serverTableHeaders.unshift("№");
   } else {
@@ -232,7 +232,3 @@ function getTextContent(index, item) {
   const key = correspondingHeadTr.getAttribute("data-my-table");
   return (item[key]);
 }
-
-
-
-
