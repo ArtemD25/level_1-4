@@ -13,12 +13,7 @@ const users = [
   {id: 30051, name: 'Петя', surname: 'Васечкин', age: 15},
 ];
 
-DataTable(config);
-
-/** DEL */
-fetch("https://mock-api.shpp.me/adavydenko/users")
-.then(response => response.json())
-.then(data => console.log(data));
+DataTable(config, users);
 
 /**
  * Creates and renders thead and tbody elements with all
@@ -162,12 +157,12 @@ function createTableBody(table) {
 function createBodyTrs(data, numOfColumns, tBody, useLocalData, serverData) {
   if (useLocalData) {
     data.forEach((item, index) => {
-      createBodyTr(numOfColumns, tBody, index, item, useLocalData);
+      createBodyTr(numOfColumns, tBody, index, item);
     })
   } else {
     let index = 0;
     for (let item in serverData.data) {
-      createBodyTr(numOfColumns, tBody, index, serverData.data[item], useLocalData);
+      createBodyTr(numOfColumns, tBody, index, serverData.data[item]);
       index++;
     }
   }
@@ -187,10 +182,10 @@ function createBodyTrs(data, numOfColumns, tBody, useLocalData, serverData) {
  * of the objects that shall be display each in a separate table row. 
  * Item is used to create a separate row and fill this row with item`s data.
  */
-function createBodyTr(numOfColumns, tBody, index, item, useLocalData) {
+function createBodyTr(numOfColumns, tBody, index, item) {
   const tBodyTr = document.createElement("tr");
   tBodyTr.classList.add("my-table__body-row");
-  createTableBodyTds(tBodyTr, numOfColumns, index, item, useLocalData);
+  createTableBodyTds(tBodyTr, numOfColumns, index, item);
   tBody.appendChild(tBodyTr);
 }
 
@@ -208,11 +203,11 @@ function createBodyTr(numOfColumns, tBody, index, item, useLocalData) {
  * of the objects that shall be display each in a separate table row. 
  * Item is used to create a separate row and fill this row with item`s data.
  */
-function createTableBodyTds(tBodyTr, numOfColumns, index, item, useLocalData) {
+function createTableBodyTds(tBodyTr, numOfColumns, index, item) {
   for (let i = 0; i < numOfColumns; i++) {
     const tBodyTd = document.createElement("td");
     tBodyTd.classList.add("my-table__body-cell");
-    tBodyTd.textContent = i === 0 ? index + 1 : getTextContent(i, item, useLocalData);
+    tBodyTd.textContent = i === 0 ? index + 1 : getTextContent(i, item);
     tBodyTr.appendChild(tBodyTd);  
   }
 }
@@ -232,16 +227,12 @@ function createTableBodyTds(tBodyTr, numOfColumns, index, item, useLocalData) {
  * Item is used to create a separate row and fill this row with item`s data.
  * @returns a textContent a particular td-element shall have.
  */
-function getTextContent(index, item, useLocalData) {
+function getTextContent(index, item) {
   const correspondingHeadTr = document.querySelector(`.my-table__header-row td:nth-child(${index + 1})`);
   const key = correspondingHeadTr.getAttribute("data-my-table");
-
-  if (useLocalData) {
-    return (item[key]);
-  } else {
-    /* console.log(item);
-    console.log(item[key]); */
-    return (item[key]);
-  }
-  
+  return (item[key]);
 }
+
+
+
+
