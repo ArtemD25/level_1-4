@@ -33,7 +33,7 @@ async function DataTable2(config, data) {
 
   if (data === undefined) {
     useLocalData = false;
-    serverData = await getServerData(config);
+    serverData = await getServerData2(config);
     numOfColumns = Object.keys(serverData.data[Object.keys(serverData.data)[0]]).length + 2;
     serverTableHeaders = Object.keys(serverData.data[Object.keys(serverData.data)[0]]);
     serverTableHeaders.unshift("№");
@@ -42,15 +42,15 @@ async function DataTable2(config, data) {
     numOfColumns = config.columns.length + 2;
   }
 
-  const table = createTableWrapperAndTable(config);
-  const tHead = createTableHead(table);
-  const tHeadTr = createTableHeadTr(tHead);
-  createTableHeadTds(tHeadTr, config, numOfColumns, useLocalData, serverTableHeaders);
-  const tBody = createTableBody(table);
-  createBodyTrs(data, numOfColumns, tBody, useLocalData, serverData, config.parent);
+  const table = createTableWrapperAndTable2(config);
+  const tHead = createTableHead2(table);
+  const tHeadTr = createTableHeadTr2(tHead);
+  createTableHeadTds2(tHeadTr, config, numOfColumns, useLocalData, serverTableHeaders);
+  const tBody = createTableBody2(table);
+  createBodyTrs2(data, numOfColumns, tBody, useLocalData, serverData, config.parent);
 }
 
-async function getServerData(config) {
+async function getServerData2(config) {
   let data = await fetch(config.apiUrl);
   data = await data.json();
   return data;
@@ -66,7 +66,7 @@ async function getServerData(config) {
  * of the columns that shall be displayed
  * @returns the table html-element
  */
-function createTableWrapperAndTable(config) {
+function createTableWrapperAndTable2(config) {
   const tableWrapper = document.getElementById(`${config.parent.slice(1)}`);
   const table = document.createElement("table");
   table.classList.add("my-table");
@@ -81,7 +81,7 @@ function createTableWrapperAndTable(config) {
  * @param {DOM-object} table is the table html-element.
  * @returns thead html-element
  */
-function createTableHead(table) {
+function createTableHead2(table) {
   const tHead = document.createElement("thead");
   tHead.classList.add("my-table__header");
   table.appendChild(tHead);
@@ -95,7 +95,7 @@ function createTableHead(table) {
  * @param {DOM-object} tHead is the thead html-element.
  * @returns tr html-element.
  */
-function createTableHeadTr(tHead) {
+function createTableHeadTr2(tHead) {
   const tHeadTr = document.createElement("tr");
   tHeadTr.classList.add("my-table__header-row");
   tHead.appendChild(tHeadTr);
@@ -113,7 +113,7 @@ function createTableHeadTr(tHead) {
  * of the columns that shall be displayed
  * @param {integer} numOfColumns is the number of columns the user wants to render on screen
  */
-function createTableHeadTds(tHeadTr, config, numOfColumns, useLocalData, serverTableHeaders) {
+function createTableHeadTds2(tHeadTr, config, numOfColumns, useLocalData, serverTableHeaders) {
   for (let i = 0; i < numOfColumns; i++) {
     const tHeadTd = document.createElement("td");
     tHeadTd.classList.add("my-table__header-cell");
@@ -152,7 +152,7 @@ function createTableHeadTds(tHeadTr, config, numOfColumns, useLocalData, serverT
  * @param {DOM-object} table is the table html-element.
  * @returns tbody html-element.
  */
-function createTableBody(table) {
+function createTableBody2(table) {
   const tBody = document.createElement("tbody");
   tBody.classList.add("my-table__body");
   table.appendChild(tBody);
@@ -170,15 +170,15 @@ function createTableBody(table) {
  * @param {integer} numOfColumns is the number of columns the user wants to render on screen
  * @param {DOM-object} tBody is the tbody html-element 
  */
-function createBodyTrs(data, numOfColumns, tBody, useLocalData, serverData, tableWrapper) {
+function createBodyTrs2(data, numOfColumns, tBody, useLocalData, serverData, tableWrapper) {
   if (useLocalData) { 
     data.forEach((item, index) => {
-      createBodyTr(numOfColumns, tBody, index, item, tableWrapper);
+      createBodyTr2(numOfColumns, tBody, index, item, tableWrapper);
     })
   } else {
     let count = 0;
     for (let item in serverData.data) {
-      createBodyTr(numOfColumns, tBody, count, serverData.data[item], tableWrapper, item);
+      createBodyTr2(numOfColumns, tBody, count, serverData.data[item], tableWrapper, item);
       count++;
     }
   }
@@ -197,10 +197,10 @@ function createBodyTrs(data, numOfColumns, tBody, useLocalData, serverData, tabl
  * of the objects that shall be display each in a separate table row. 
  * Item is used to create a separate row and fill this row with item`s data.
  */
-function createBodyTr(numOfColumns, tBody, index, item, tableWrapper, keyOfObject) {
+function createBodyTr2(numOfColumns, tBody, index, item, tableWrapper, keyOfObject) {
   const tBodyTr = document.createElement("tr");
   tBodyTr.classList.add("my-table__body-row");
-  createTableBodyTds(tBodyTr, numOfColumns, index, item, tableWrapper, keyOfObject);
+  createTableBodyTds2(tBodyTr, numOfColumns, index, item, tableWrapper, keyOfObject);
   tBody.appendChild(tBodyTr);
 }
 
@@ -218,7 +218,7 @@ function createBodyTr(numOfColumns, tBody, index, item, tableWrapper, keyOfObjec
  * of the objects that shall be display each in a separate table row. 
  * Item is used to create a separate row and fill this row with item`s data.
  */
-function createTableBodyTds(tBodyTr, numOfColumns, index, item, tableWrapper, keyOfObject) {
+function createTableBodyTds2(tBodyTr, numOfColumns, index, item, tableWrapper, keyOfObject) {
   for (let i = 0; i < numOfColumns; i++) {
     const tBodyTd = document.createElement("td");
     tBodyTd.classList.add("my-table__body-cell");
@@ -226,18 +226,18 @@ function createTableBodyTds(tBodyTr, numOfColumns, index, item, tableWrapper, ke
     if (i === 0) {
       tBodyTd.textContent = index + 1;
     } else if (i === numOfColumns - 1) {
-      const deleteBtn = createDeleteBtn(keyOfObject, tableWrapper);
+      const deleteBtn = createDeleteBtn2(keyOfObject, tableWrapper);
       tBodyTd.append(deleteBtn);
       tBodyTd.classList.add("deleteBtnCell");
     } else {
-      tBodyTd.textContent = getTextContent(i, item, tableWrapper);
+      tBodyTd.textContent = getTextContent2(i, item, tableWrapper);
     }
     
     tBodyTr.appendChild(tBodyTd);  
   }
 }
 
-function createDeleteBtn(keyOfObject, tableWrapper) {
+function createDeleteBtn2(keyOfObject, tableWrapper) {
   const deleteBtn = document.createElement("button");
   deleteBtn.textContent = "Delete";
   deleteBtn.classList.add("deleteBtn");
@@ -262,7 +262,7 @@ function createDeleteBtn(keyOfObject, tableWrapper) {
   return deleteBtn;
 }
 
-function removeRow(tableWrapper) {
+function removeRow2(tableWrapper) {
   console.log(this);
   const key = this.getAttribute("data-id");
   fetch(`https://mock-api.shpp.me/adavydenko/users/${key}`, {
@@ -292,7 +292,7 @@ function removeRow(tableWrapper) {
  * Item is used to create a separate row and fill this row with item`s data.
  * @returns a textContent a particular td-element shall have.
  */
-function getTextContent(index, item, tableWrapper) {
+function getTextContent2(index, item, tableWrapper) {
   const correspondingHeadTr = document.querySelector(`${tableWrapper} .my-table__header-row td:nth-child(${index + 1})`);
   const key = correspondingHeadTr.getAttribute("data-my-table");
   return (item[key]);

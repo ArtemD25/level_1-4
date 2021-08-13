@@ -13,7 +13,7 @@ const users = [
   {id: 30051, name: 'Петя', surname: 'Васечкин', age: 15},
 ];
 
-DataTable(config, users);
+DataTable(config);
 
 /**
  * Creates and renders thead and tbody elements with all
@@ -34,8 +34,8 @@ async function DataTable(config, data) {
   if (data === undefined) {
     useLocalData = false;
     serverData = await getServerData(config);
-    numOfColumns = Object.keys(serverData.data[1]).length + 1;
-    serverTableHeaders = Object.keys(serverData.data[1]);
+    numOfColumns = Object.keys(serverData.data[Object.keys(serverData.data)[0]]).length + 2;
+    serverTableHeaders = Object.keys(serverData.data[Object.keys(serverData.data)[0]]);
     serverTableHeaders.unshift("№");
   } else {
     numOfColumns = config.columns.length + 1;
