@@ -280,20 +280,6 @@ function createDeleteBtn2(keyOfObject, tableWrapper, useLocalData) {
   return deleteBtn;
 }
 
-function removeRow2(tableWrapper) {
-  const key = this.getAttribute("data-id");
-  fetch(`https://mock-api.shpp.me/adavydenko/users/${key}`, {
-      method: "DELETE",
-    })
-    .then(response => {
-      if (response.ok) {
-        console.log("row deleted");
-        document.getElementById(tableWrapper.slice(1)).children[0].remove();
-        DataTable2(config2);
-      }
-    });
-}
-
 /**
  * Creates textContent for td-elements inside the tbody element.
  * If a particular index has value of 2, the script will look for the second td-element
