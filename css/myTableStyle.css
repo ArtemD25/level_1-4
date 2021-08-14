@@ -76,3 +76,26 @@
 .deleteBtn:active {
   transform: translate(-2px, 2px) scale(0.95);
 }
+
+.addNewLineBtn {
+  display: block;
+  margin: 0 0 20px 0;
+  padding: 10px 20px;
+  border: none;
+
+  color: #ffffff;
+  background-color: var(--main-theme);
+  text-transform: uppercase;
+  font-family:"Helvetica Neue", Helvetica, Arial, sans-serif;
+  border-radius: 10px;
+
+  transition: ease-out 200ms;
+}
+
+.addNewLineBtn:hover {
+  background-color: #00ad8b;
+}
+
+.addNewLineBtn:active {
+  transform: translate(-2px, 2px) scale(0.95);
+}
