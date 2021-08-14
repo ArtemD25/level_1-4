@@ -30,7 +30,121 @@ const users3 = [{
   },
 ];
 
+const addBtn = document.querySelector("#task3_addNewLineBtn");
+const warningText = document.querySelector("#task3_warning-text");
+const newEmptyLines = [];
+
 DataTable3(config3);
+
+addBtn.addEventListener("click", function() {
+  if (newEmptyLines.length < 5) {
+    const newEmptyLine = createNewEmptyLine();
+    insertNewEmptyLine(newEmptyLine); // to be written!!!!!!!!!!!!
+    newEmptyLines.push(newEmptyLine);
+  } else {
+    if (warningText.classList.contains("task3_warning-text--hide")) {
+      warningText.classList.remove("task3_warning-text--hide");
+      setTimeout(() => {
+        warningText.classList.add("task3_warning-text--hide");
+      }, 2000);
+    }
+  }
+});
+
+function insertNewEmptyLine(newEmptyLine) {
+  const tBody = document.querySelector(`${config3.parent} .my-table__body`);
+  tBody.insertBefore(newEmptyLine, tBody.firstChild);
+}
+
+function createNewEmptyLine() {
+  const tBody = document.querySelector(`${config3.parent} .my-table__body`);
+  const firstTBodyChild = tBody.firstChild;
+  const newEmptyLine = firstTBodyChild.cloneNode(true);
+
+  for (let i = 0; i < newEmptyLine.children.length; i++) {
+    const tdNode = newEmptyLine.children[i];
+    tdNode.innerHTML = "";
+
+    if (i === 0) {
+      tdNode.innerHTML = 0;
+    } else if (i === newEmptyLine.children.length - 1) { // creates btn-s
+      const div = document.createElement("div");
+      div.classList.add("buttons-wrapper");
+
+      const delEmptyLine = document.createElement("button");
+      delEmptyLine.classList.add("delEmptyLine");
+      delEmptyLine.innerText = "Del";
+      delEmptyLine.onclick = function() {
+        const parent = this.parentNode.parentNode.parentNode;
+        parent.remove();
+      };
+
+      const sendEmptyLine = document.createElement("button");
+      sendEmptyLine.classList.add("sendEmptyLine");
+      sendEmptyLine.innerText = "Send";
+      sendEmptyLine.onclick = function() {
+        sendDataToServer(this.parentNode.parentNode);
+      };
+
+      div.append(delEmptyLine);
+      div.append(sendEmptyLine);
+      tdNode.append(div);
+
+    } else { // creates regular empty inputs
+      let input = document.createElement("input");
+      input.classList.add("inputField");
+      input.setAttribute("data-inputSet", `${newEmptyLines.length}`);
+      tdNode.append(input);
+    }
+  }
+
+  return newEmptyLine;
+}
+
+function sendDataToServer(parent) {
+  const inputID = parent.children[0].getAttribute("data-inputSet");
+  const inputArray = document.querySelectorAll(`input[data-inputSet=${inputID}]`);
+  let eligibleToBeSent = true;
+
+  const objID = getObjID(parent);
+  const object = {};
+
+  const headers = parent.parentNode.parentNode.firstChild.children;
+  const objKeys = [];
+  for (let child of headers) {
+    objKeys.push(child.innerText);
+  }
+
+  for (let i = 0; i < inputArray.length; i++) {
+    const input = inputArray[i];
+
+    if (input.textContent === "") {
+      eligibleToBeSent = false;
+      input.classList.add("wrond_data");
+    } else {
+      object[objKeys + 1] = input.textContent;
+    }
+  }
+
+  const objectToBeSent = {objID : object};
+
+  if (eligibleToBeSent) {
+    fetch("https://mock-api.shpp.me/adavydenko/users", {
+      method: "POST",
+      body: JSON.stringify(objectToBeSent),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+    .then(() => DataTable3(config3));
+  }
+}
+
+function getObjID(parent) {
+  const lastTr = parent.parentNode.lastChild;
+  const id = lastTr.lastChild.firstChild.getAttribute("data-id");
+  return (+id + 1);
+}
 
 /**
  * Creates and renders thead and tbody elements with all
