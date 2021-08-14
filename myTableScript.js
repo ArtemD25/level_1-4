@@ -158,7 +158,7 @@ function createBodyTrs(data, numOfColumns, tBody, useLocalData, serverData, tabl
   if (useLocalData) {
     data.forEach((item, index) => {
       createBodyTr(numOfColumns, tBody, index, item, tableWrapper);
-    })
+    });
   } else {
     let count = 0;
     for (let item in serverData.data) {
