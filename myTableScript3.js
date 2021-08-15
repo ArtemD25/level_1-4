@@ -76,8 +76,7 @@ function createNewEmptyLine() {
       delEmptyLine.innerText = "Del";
       delEmptyLine.onclick = function() {
         const parent = this.parentNode.parentNode.parentNode;
-        const index = newEmptyLines.indexOf(parent, 0); 
-        newEmptyLines.splice(index, 1);
+        removeLineFromArray(parent);
         parent.remove();
       };
 
@@ -96,6 +95,11 @@ function createNewEmptyLine() {
       let input = document.createElement("input");
       input.classList.add("inputField");
       input.setAttribute("data-inputset", `${newEmptyLines.length}`);
+      input.addEventListener("keypress", function(evt) {
+        if (evt.key === "Enter") {
+          sendDataToServer(this.parentNode);
+        }
+      });
       tdNode.append(input);
     }
   }
@@ -103,7 +107,13 @@ function createNewEmptyLine() {
   return newEmptyLine;
 }
 
+function removeLineFromArray(parent) {
+  const index = newEmptyLines.indexOf(parent, 0);
+  newEmptyLines.splice(index, 1);
+}
+
 function sendDataToServer(parent) {
+  console.log(parent);
   const inputID = parent.parentNode.children[1].children[0].getAttribute("data-inputset");
   const inputArray = document.querySelectorAll(`input[data-inputset="${inputID}"]`);
   let eligibleToBeSent = true;
@@ -123,15 +133,14 @@ function sendDataToServer(parent) {
       input.classList.add("wrond_data");
       input.placeholder = "Fill me out";
     } else {
-      console.log("not empty");
       const key = objKeys[i];
       object[key] = input.value;
     }
   }
 
-  console.log(object);
-
   if (eligibleToBeSent) {
+    removeLineFromArray(parent.parentNode);
+
     fetch("https://mock-api.shpp.me/adavydenko/users", {
       method: "POST",
       body: JSON.stringify(object),
