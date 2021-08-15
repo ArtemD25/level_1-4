@@ -128,6 +128,11 @@ button:active {
   height: 30px;
 }
 
+.inputField::placeholder {
+  color: rgba(252, 31, 31, 0.7);
+  font-size: 12px;
+}
+
 .buttons-wrapper {
   display: flex;
   justify-self: center;
@@ -153,5 +158,7 @@ button:active {
 }
 
 .wrond_data {
-  outline: 2px solid red;
+  border-color: transparent;
+  
+  outline: 1px solid rgb(252, 31, 31);
 }

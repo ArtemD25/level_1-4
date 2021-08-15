@@ -76,6 +76,8 @@ function createNewEmptyLine() {
       delEmptyLine.innerText = "Del";
       delEmptyLine.onclick = function() {
         const parent = this.parentNode.parentNode.parentNode;
+        const index = newEmptyLines.indexOf(parent, 0); 
+        newEmptyLines.splice(index, 1);
         parent.remove();
       };
 
@@ -93,7 +95,7 @@ function createNewEmptyLine() {
     } else { // creates regular empty inputs
       let input = document.createElement("input");
       input.classList.add("inputField");
-      input.setAttribute("data-inputSet", `${newEmptyLines.length}`);
+      input.setAttribute("data-inputset", `${newEmptyLines.length}`);
       tdNode.append(input);
     }
   }
@@ -102,48 +104,51 @@ function createNewEmptyLine() {
 }
 
 function sendDataToServer(parent) {
-  const inputID = parent.children[0].getAttribute("data-inputSet");
-  const inputArray = document.querySelectorAll(`input[data-inputSet=${inputID}]`);
+  const inputID = parent.parentNode.children[1].children[0].getAttribute("data-inputset");
+  const inputArray = document.querySelectorAll(`input[data-inputset="${inputID}"]`);
   let eligibleToBeSent = true;
-
-  const objID = getObjID(parent);
-  const object = {};
-
-  const headers = parent.parentNode.parentNode.firstChild.children;
+  const object = {}; // object to be sent to server
+  const headers = document.querySelectorAll(`${config3.parent} .my-table__header-cell`); // headers of all columns
   const objKeys = [];
-  for (let child of headers) {
-    objKeys.push(child.innerText);
+
+  for (let i = 1; i < headers.length - 1; i++) {
+    objKeys.push(headers[i].innerText);
   }
 
   for (let i = 0; i < inputArray.length; i++) {
     const input = inputArray[i];
 
-    if (input.textContent === "") {
+    if (input.value === "") {
       eligibleToBeSent = false;
       input.classList.add("wrond_data");
+      input.placeholder = "Fill me out";
     } else {
-      object[objKeys + 1] = input.textContent;
+      console.log("not empty");
+      const key = objKeys[i];
+      object[key] = input.value;
     }
   }
 
-  const objectToBeSent = {objID : object};
+  console.log(object);
 
   if (eligibleToBeSent) {
     fetch("https://mock-api.shpp.me/adavydenko/users", {
       method: "POST",
-      body: JSON.stringify(objectToBeSent),
+      body: JSON.stringify(object),
       headers: {
         "Content-Type": "application/json",
       },
     })
-    .then(() => DataTable3(config3));
+    .then(response => {
+      if (response.ok) {
+        console.log("New data saved on server");
+        parent.parentNode.parentNode.parentNode.remove(); // remove the whole table
+        DataTable3(config3);
+      } else {
+        console.log("New data was not saved on server");
+      }
+    });
   }
-}
-
-function getObjID(parent) {
-  const lastTr = parent.parentNode.lastChild;
-  const id = lastTr.lastChild.firstChild.getAttribute("data-id");
-  return (+id + 1);
 }
 
 /**
