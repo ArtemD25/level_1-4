@@ -30,13 +30,17 @@ const users3 = [{
   },
 ];
 
-let configFile; 
+let configFile; // Saves the link to the first argument in the DataTable3 function call
 const addBtn = document.querySelector("#task3_addNewLineBtn");
 const warningText = document.querySelector("#task3_warning-text");
 let newEmptyLine = null;
 
 DataTable3(config3);
 
+/**
+ * Makes the "Add new line" button to add it to the table if one does not exist yet.
+ * If it already exists, the warning text is to be displayed for 2 sec.
+ */
 addBtn.addEventListener("click", function() {
   if (newEmptyLine === null) {
     newEmptyLine = createNewEmptyLine();
@@ -51,11 +55,22 @@ addBtn.addEventListener("click", function() {
   }
 });
 
+/**
+ * Inserts new empty line with editable inputs as the first line of the table
+ * @param {object} newEmptyLine is the new line with inputs
+ */
 function insertNewEmptyLine(newEmptyLine) {
   const tBody = document.querySelector(`${configFile.parent} .my-table__body`);
   tBody.insertBefore(newEmptyLine, tBody.firstChild);
 }
 
+/**
+ * Creates new line with inputs for user to type smth in them.
+ * The last cell of the line has two buttons. The first one can
+ * delete this line and the second one checks the validity of the
+ * user input and send data to the server if everething is okey.
+ * @returns line with editable inputs and two buttons.
+ */
 function createNewEmptyLine() {
   const tBody = document.querySelector(`${configFile.parent} .my-table__body`);
   const firstTBodyChild = tBody.firstChild;
@@ -70,55 +85,74 @@ function createNewEmptyLine() {
     } else if (i === newEmptyLine.children.length - 1) { // creates btn-s
       const div = document.createElement("div");
       div.classList.add("buttons-wrapper");
-
-      const delEmptyLine = document.createElement("button");
-      delEmptyLine.classList.add("delEmptyLine");
-      delEmptyLine.innerText = "Del";
-      delEmptyLine.onclick = function() {
-        const parent = this.parentNode.parentNode.parentNode;
-        newEmptyLine = null;
-        parent.remove();
-      };
-
-      const sendEmptyLine = document.createElement("button");
-      sendEmptyLine.classList.add("sendEmptyLine");
-      sendEmptyLine.innerText = "Send";
-      sendEmptyLine.onclick = function() {
-        sendDataToServer(this.parentNode.parentNode);
-      };
-
+      const delEmptyLine = createDeleteButton();
+      const sendEmptyLine = createSendButton();
       div.append(delEmptyLine);
       div.append(sendEmptyLine);
       tdNode.append(div);
-
     } else { // creates regular empty inputs
       let input = document.createElement("input");
       input.classList.add("inputField");
       input.setAttribute("data-inputset", "newEmptyLine");
       input.addEventListener("keypress", function(evt) {
         if (evt.key === "Enter") {
-          sendDataToServer(this.parentNode);
+          checkAndSendDataToServer(this.parentNode);
         }
       });
       tdNode.append(input);
     }
   }
-
   return newEmptyLine;
 }
 
-function sendDataToServer(parent) {
+/**
+ * Creates button that deletes inputs-line
+ * @returns button that deletes inputs-line
+ */
+function createDeleteButton() {
+  const delEmptyLine = document.createElement("button");
+  delEmptyLine.classList.add("delEmptyLine");
+  delEmptyLine.innerText = "Del";
+  delEmptyLine.onclick = function() {
+    const parent = this.parentNode.parentNode.parentNode;
+    newEmptyLine = null;
+    parent.remove();
+  };
+  return delEmptyLine;
+}
+
+/**
+ * Creates button that sends data from the inputs-line to the server
+ * @returns button that sends data from the inputs-line to the server
+ */
+function createSendButton() {
+  const sendEmptyLine = document.createElement("button");
+  sendEmptyLine.classList.add("sendEmptyLine");
+  sendEmptyLine.innerText = "Send";
+  sendEmptyLine.onclick = function() {
+    checkAndSendDataToServer(this.parentNode.parentNode);
+  };
+  return sendEmptyLine;
+}
+
+/**
+ * Checks user`s input for being valid and send the data to the server if so.
+ * After that the table is re-rendered. If data is not valid, the script highlights
+ * the not-valid inputs with color red.
+ * @param {object} parent is the td html-element of the inputs-line
+ */
+function checkAndSendDataToServer(parent) {
   const inputArray = document.querySelectorAll(`input[data-inputset="newEmptyLine"]`);
   let eligibleToBeSent = true;
-  const object = {}; // object to be sent to server
+  const objectToBeSent = {};
   const headers = document.querySelectorAll(`${configFile.parent} .my-table__header-cell`); // headers of all columns
   const objKeys = [];
 
-  for (let i = 1; i < headers.length - 1; i++) {
+  for (let i = 1; i < headers.length - 1; i++) { // collects all table headers
     objKeys.push(headers[i].innerText);
   }
 
-  for (let i = 0; i < inputArray.length; i++) {
+  for (let i = 0; i < inputArray.length; i++) { // checks user`s inputs for being valid
     const input = inputArray[i];
 
     if (input.value === "") {
@@ -127,16 +161,26 @@ function sendDataToServer(parent) {
       input.placeholder = "Fill me out";
     } else {
       const key = objKeys[i];
-      object[key] = input.value;
+      objectToBeSent[key] = input.value;
     }
   }
+  sendDataToServer(eligibleToBeSent, objectToBeSent, parent);
+}
 
-  if (eligibleToBeSent) {
+/**
+ * Sends collected data to server if all data is valid. Then deletes the whole table,
+ * gets updated object from the server and re-renders the whole table.
+ * @param {boolean} eligibleToBeSent indicates whether all data is valid.
+ * @param {object} objectToBeSent is the object that shall be sent to the server.
+ * @param {html-element} parent is the td html-element of the inputs-line.
+ */
+function sendDataToServer(eligibleToBeSent, objectToBeSent, parent) {
+  if (eligibleToBeSent) { 
     newEmptyLine = null;
 
     fetch("https://mock-api.shpp.me/adavydenko/users", {
       method: "POST",
-      body: JSON.stringify(object),
+      body: JSON.stringify(objectToBeSent),
       headers: {
         "Content-Type": "application/json",
       },
@@ -144,7 +188,7 @@ function sendDataToServer(parent) {
     .then(response => {
       if (response.ok) {
         console.log("New data saved on server");
-        parent.parentNode.parentNode.parentNode.remove(); // remove the whole table
+        parent.parentNode.parentNode.parentNode.remove(); // removes the whole table
         DataTable3(configFile);
       } else {
         console.log("New data was not saved on server");
