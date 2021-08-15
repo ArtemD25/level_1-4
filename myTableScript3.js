@@ -1,3 +1,5 @@
+"use strict";
+
 const config3 = {
   parent: '#usersTable3',
   columns: [{
@@ -175,7 +177,7 @@ function checkAndSendDataToServer(parent) {
  * @param {html-element} parent is the td html-element of the inputs-line.
  */
 function sendDataToServer(eligibleToBeSent, objectToBeSent, parent) {
-  if (eligibleToBeSent) { 
+  if (eligibleToBeSent) {
     newEmptyLine = null;
 
     fetch("https://mock-api.shpp.me/adavydenko/users", {
@@ -350,7 +352,7 @@ function createBodyTrs3(data, numOfColumns, tBody, useLocalData, serverData, tab
   if (useLocalData) {
     data.forEach((item, index) => {
       createBodyTr2(numOfColumns, tBody, index, item, tableWrapper, useLocalData);
-    })
+    });
   } else {
     let count = 0;
     for (let item in serverData.data) {
@@ -432,7 +434,7 @@ function createDeleteBtn3(keyOfObject, tableWrapper, useLocalData) {
       const parent = this.parentNode.parentNode;
       parent.remove();
     }
-  }
+  };
 
   return deleteBtn;
 }
