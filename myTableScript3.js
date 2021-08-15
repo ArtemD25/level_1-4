@@ -32,15 +32,14 @@ const users3 = [{
 
 const addBtn = document.querySelector("#task3_addNewLineBtn");
 const warningText = document.querySelector("#task3_warning-text");
-const newEmptyLines = [];
+let newEmptyLine = null;
 
 DataTable3(config3);
 
 addBtn.addEventListener("click", function() {
-  if (newEmptyLines.length < 5) {
-    const newEmptyLine = createNewEmptyLine();
-    insertNewEmptyLine(newEmptyLine); // to be written!!!!!!!!!!!!
-    newEmptyLines.push(newEmptyLine);
+  if (newEmptyLine === null) {
+    newEmptyLine = createNewEmptyLine();
+    insertNewEmptyLine(newEmptyLine);
   } else {
     if (warningText.classList.contains("task3_warning-text--hide")) {
       warningText.classList.remove("task3_warning-text--hide");
@@ -59,7 +58,7 @@ function insertNewEmptyLine(newEmptyLine) {
 function createNewEmptyLine() {
   const tBody = document.querySelector(`${config3.parent} .my-table__body`);
   const firstTBodyChild = tBody.firstChild;
-  const newEmptyLine = firstTBodyChild.cloneNode(true);
+  newEmptyLine = firstTBodyChild.cloneNode(true);
 
   for (let i = 0; i < newEmptyLine.children.length; i++) {
     const tdNode = newEmptyLine.children[i];
@@ -76,7 +75,7 @@ function createNewEmptyLine() {
       delEmptyLine.innerText = "Del";
       delEmptyLine.onclick = function() {
         const parent = this.parentNode.parentNode.parentNode;
-        removeLineFromArray(parent);
+        newEmptyLine = null;
         parent.remove();
       };
 
@@ -94,7 +93,7 @@ function createNewEmptyLine() {
     } else { // creates regular empty inputs
       let input = document.createElement("input");
       input.classList.add("inputField");
-      input.setAttribute("data-inputset", `${newEmptyLines.length}`);
+      input.setAttribute("data-inputset", "newEmptyLine");
       input.addEventListener("keypress", function(evt) {
         if (evt.key === "Enter") {
           sendDataToServer(this.parentNode);
@@ -107,15 +106,8 @@ function createNewEmptyLine() {
   return newEmptyLine;
 }
 
-function removeLineFromArray(parent) {
-  const index = newEmptyLines.indexOf(parent, 0);
-  newEmptyLines.splice(index, 1);
-}
-
 function sendDataToServer(parent) {
-  console.log(parent);
-  const inputID = parent.parentNode.children[1].children[0].getAttribute("data-inputset");
-  const inputArray = document.querySelectorAll(`input[data-inputset="${inputID}"]`);
+  const inputArray = document.querySelectorAll(`input[data-inputset="newEmptyLine"]`);
   let eligibleToBeSent = true;
   const object = {}; // object to be sent to server
   const headers = document.querySelectorAll(`${config3.parent} .my-table__header-cell`); // headers of all columns
@@ -139,7 +131,7 @@ function sendDataToServer(parent) {
   }
 
   if (eligibleToBeSent) {
-    removeLineFromArray(parent.parentNode);
+    newEmptyLine = null;
 
     fetch("https://mock-api.shpp.me/adavydenko/users", {
       method: "POST",
@@ -163,7 +155,6 @@ function sendDataToServer(parent) {
 /**
  * Creates and renders thead and tbody elements with all
  * tr-s and td-s as well as the content the user provided.
- * 
  * @param {object} config is an object containing names and values
  * of the columns that shall be displayed
  * @param {array} data is an array of objects with the actual data
@@ -206,7 +197,6 @@ async function getServerData3(config) {
  * the config-object and makes it a table wrapper. After that creates
  * a table DOM-element, assigns it a class and adds to the table wrapper
  * as its child.
- * 
  * @param {object} config is an object containing names and values
  * of the columns that shall be displayed
  * @returns the table html-element
@@ -222,7 +212,6 @@ function createTableWrapperAndTable3(config) {
 /**
  * Creates a thead html-element, assigns it a class and adds to the table
  * as its child.
- * 
  * @param {DOM-object} table is the table html-element.
  * @returns thead html-element
  */
@@ -236,7 +225,6 @@ function createTableHead3(table) {
 /**
  * Creates a tr html-element inside the thead element, assigns it a class
  * and adds to the thead as its child.
- * 
  * @param {DOM-object} tHead is the thead html-element.
  * @returns tr html-element.
  */
@@ -252,7 +240,6 @@ function createTableHeadTr3(tHead) {
  * and adds to the tr element as its children. Each td-element gets also
  * an attribute which will be used as an identifier. Based on this identifier
  * td-elements inside tbody will get a particular value.
- * 
  * @param {DOB-object} tHeadTr is the tr html-element inside a thead element
  * @param {object} config is an object containing names and values
  * of the columns that shall be displayed
@@ -293,7 +280,6 @@ function createTableHeadTds3(tHeadTr, config, numOfColumns, useLocalData, server
 /**
  * Creates a tbody html-element, assigns it a class and adds to the table
  * as its child.
- * 
  * @param {DOM-object} table is the table html-element.
  * @returns tbody html-element.
  */
@@ -308,12 +294,11 @@ function createTableBody3(table) {
  * Creates tr html-elements inside the tbody element. The number of the
  * tr-elements to be created depends on the number of items in the data-array
  * since each item (object) represents a separte row in the table.
- * 
  * @param {array} data is an array of objects with the actual data
  * to be displayed. The objects` keys shall have the exact same names
  * as the columns` values in the config object.
  * @param {integer} numOfColumns is the number of columns the user wants to render on screen
- * @param {DOM-object} tBody is the tbody html-element 
+ * @param {DOM-object} tBody is the tbody html-element.
  */
 function createBodyTrs3(data, numOfColumns, tBody, useLocalData, serverData, tableWrapper) {
   if (useLocalData) {
@@ -332,14 +317,13 @@ function createBodyTrs3(data, numOfColumns, tBody, useLocalData, serverData, tab
 /**
  * Creates a single tr html-element inside the tbody element, assigns it a class,
  * appends it with td html-elements and adds it to the tbody as its child.
- * 
  * @param {integer} numOfColumns is the number of columns the user wants to render on screen
  * @param {DOM-object} tBody is the tbody html-element
  * @param {integer} index is the index of a particular item whose data is being extracted
  * and rendered at the moment. The index is used to enter the sequence number of a
  * particular row in the cell with row numbers.
- * @param {array-item} item is a particular item of the data-array consisting 
- * of the objects that shall be display each in a separate table row. 
+ * @param {array-item} item is a particular item of the data-array consisting
+ * of the objects that shall be display each in a separate table row.
  * Item is used to create a separate row and fill this row with item`s data.
  */
 function createBodyTr3(numOfColumns, tBody, index, item, tableWrapper, useLocalData, keyOfObject) {
@@ -353,14 +337,13 @@ function createBodyTr3(numOfColumns, tBody, index, item, tableWrapper, useLocalD
  * Creates as many td html-elements inside a particular tr-element as the user
  * mentioned in the config.columns array of the config object. Each td-element
  * gets a class.
- * 
  * @param {DOM-object} tBodyTr is the tr html-element as a child of the tbody element.
  * @param {integer} numOfColumns is the number of columns the user wants to render on screen.
  * @param {integer} index is the index of a particular item whose data is being extracted
  * and rendered at the moment. The index is used to enter the sequence number of a
  * particular row in the cell with row numbers.
- * @param {array-item} item is a particular item of the data-array consisting 
- * of the objects that shall be display each in a separate table row. 
+ * @param {array-item} item is a particular item of the data-array consisting
+ * of the objects that shall be display each in a separate table row.
  * Item is used to create a separate row and fill this row with item`s data.
  */
 function createTableBodyTds3(tBodyTr, numOfColumns, index, item, tableWrapper, keyOfObject, useLocalData) {
@@ -414,12 +397,11 @@ function createDeleteBtn3(keyOfObject, tableWrapper, useLocalData) {
  * in the thead section. After that it will extract the value of uts its data-my-table
  * attribute and use it as a key to the item-object (an object from the data-array).
  * Text under this key will be used as textContent of the particular td-element.
- * 
  * @param {integer} index is the index of a particular item whose data is being extracted
  * and rendered at the moment. The index is used to enter the sequence number of a
  * particular row in the cell with row numbers.
- * @param {array-item} item is a particular item of the data-array consisting 
- * of the objects that shall be display each in a separate table row. 
+ * @param {array-item} item is a particular item of the data-array consisting
+ * of the objects that shall be display each in a separate table row.
  * Item is used to create a separate row and fill this row with item`s data.
  * @returns a textContent a particular td-element shall have.
  */
