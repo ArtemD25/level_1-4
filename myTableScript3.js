@@ -30,6 +30,7 @@ const users3 = [{
   },
 ];
 
+let configFile; 
 const addBtn = document.querySelector("#task3_addNewLineBtn");
 const warningText = document.querySelector("#task3_warning-text");
 let newEmptyLine = null;
@@ -51,12 +52,12 @@ addBtn.addEventListener("click", function() {
 });
 
 function insertNewEmptyLine(newEmptyLine) {
-  const tBody = document.querySelector(`${config3.parent} .my-table__body`);
+  const tBody = document.querySelector(`${configFile.parent} .my-table__body`);
   tBody.insertBefore(newEmptyLine, tBody.firstChild);
 }
 
 function createNewEmptyLine() {
-  const tBody = document.querySelector(`${config3.parent} .my-table__body`);
+  const tBody = document.querySelector(`${configFile.parent} .my-table__body`);
   const firstTBodyChild = tBody.firstChild;
   newEmptyLine = firstTBodyChild.cloneNode(true);
 
@@ -110,7 +111,7 @@ function sendDataToServer(parent) {
   const inputArray = document.querySelectorAll(`input[data-inputset="newEmptyLine"]`);
   let eligibleToBeSent = true;
   const object = {}; // object to be sent to server
-  const headers = document.querySelectorAll(`${config3.parent} .my-table__header-cell`); // headers of all columns
+  const headers = document.querySelectorAll(`${configFile.parent} .my-table__header-cell`); // headers of all columns
   const objKeys = [];
 
   for (let i = 1; i < headers.length - 1; i++) {
@@ -144,7 +145,7 @@ function sendDataToServer(parent) {
       if (response.ok) {
         console.log("New data saved on server");
         parent.parentNode.parentNode.parentNode.remove(); // remove the whole table
-        DataTable3(config3);
+        DataTable3(configFile);
       } else {
         console.log("New data was not saved on server");
       }
@@ -162,6 +163,7 @@ function sendDataToServer(parent) {
  * as the columns` values in the config object.
  */
 async function DataTable3(config, data) {
+  configFile = config;
   let serverData;
   let useLocalData = true;
   let numOfColumns;
@@ -379,7 +381,7 @@ function createDeleteBtn3(keyOfObject, tableWrapper, useLocalData) {
         .then(response => {
           if (response.ok) {
             document.getElementById(tableWrapper.slice(1)).children[0].remove(); // remove the whole table
-            DataTable3(config3);
+            DataTable3(configFile);
           }
         });
     } else {
